@@ -6,6 +6,9 @@ import MiniPlayer from '../components/MiniPlayer';
 import SongsComponent from './SongsComponent';
 import ListSongs from './ListSongs';
 import Item from './ComponentStyles/Item';
+import TrackPlayer from '../trackPlayer/index'
+import {songs} from '../data/data';
+
 export default class PlaylistComponent extends React.Component {
     constructor(props) {
         super(props);
@@ -56,6 +59,10 @@ export default class PlaylistComponent extends React.Component {
         songs = responseJson
         
         }
+        if(this.props.route.params.type == 'foryou'){
+        console.log(data
+            )
+    }
         if(this.props.route.params.type == 'the_loai'){
             let response = null
             response = await fetch("https://fhq-music-app.herokuapp.com/the_loai", {
@@ -86,7 +93,6 @@ export default class PlaylistComponent extends React.Component {
         
         }
     }
-    
     _goBack = () => {
         this.props.navigation.goBack();
     }
@@ -109,13 +115,16 @@ export default class PlaylistComponent extends React.Component {
                             <Text style={styles.description}>{this.state.playlistDescription}</Text>
                         </ImageBackground>
                     </View>
+                   
                     <View style={styles.listSong}>
                         {   
                             this.state.isFetching? 
+                                    
                             <View style={{flex: 1, justifyContent: 'center'}}>
                                 <ActivityIndicator size='large' color='#0D47A1' />
                             </View>:
                             <ListSongs  data = {this.state.data} navigate={navigate }/>
+                            
                             
                         }
                         {
@@ -127,6 +136,7 @@ export default class PlaylistComponent extends React.Component {
                         }
                     </View>
                 </View>
+                <MiniPlayer navigate={this.props.navigation.navigate}/>
                 </View>
               </SafeAreaView>
         </React.Fragment>

@@ -13,10 +13,9 @@ import {
 import { Icon } from 'react-native-elements';
 import { device } from '../config/ScreenDimensions';
 import TrackPlayer from '../trackPlayer/index'
-import { setUser } from '../actions/index';
+import { setUser, setSong } from '../actions/index';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-// import { Alert } from 'react-native';
 
 class ListSongs extends React.Component {
   constructor(props) {
@@ -24,14 +23,39 @@ class ListSongs extends React.Component {
   }
   
   state = {
-    playlist: [],
+    playlist: this.props.data,
+    noData: true
   }
+  componentDidMount(){
+    if(this.state.playlist == ''){
+      this.setState({
+        noData: false
+      })
+    }
+  }
+  playAllSong = () => {
 
-  playSong = index => {
+    TrackPlayer.destroy();
+    try {
+      TrackPlayer.add( this.state.playlist)
+      this.props.setSong(this.state.playlist[0].id, this.state.playlist[0].title, this.state.playlist[0].artist, this.state.playlist[0].artwork)
+      this.props.navigate("Player") 
+    } catch (error) {
+      Alert.alert("Playlist đang được phát",)
+    }
+   
     
-    TrackPlayer.reset();
-    TrackPlayer.add( this.state.playlist[index] )
+    
+    
+  }
+  
+  playSong = index => {
 
+    TrackPlayer.destroy();
+    TrackPlayer.add( this.state.playlist[index])
+    this.props.setSong(this.state.playlist[index].id, this.state.playlist[index].title, this.state.playlist[index].artist, this.state.playlist[index].artwork)
+    
+    
     this.props.navigate("Player") 
   }
   
@@ -54,7 +78,7 @@ class ListSongs extends React.Component {
             body: JSON.stringify({userId: this.props.user.id, songId: this.state.playlist[index].id})
         });
         const result = await response.json();
-        console.log(result)
+        // console.log(result)
         if(result != 0){
           this.props.setUser(result)
           Alert.alert("Thêm vào danh sách yêu thích thành công!")
@@ -83,7 +107,6 @@ class ListSongs extends React.Component {
 
 
   renderItem = ({item, index}) => {
-    console.log(this.props.favorite)
     return(
       <View>
         <TouchableOpacity
@@ -93,6 +116,7 @@ class ListSongs extends React.Component {
 
           }}  
         >
+          
         <View style={styles.container}>
           <Image style={styles.image} source = {{uri: item.artwork}}/>
           <View style={styles.songInfoContainer}>
@@ -125,7 +149,7 @@ class ListSongs extends React.Component {
                             
                 }
                 <MenuOption onSelect={() => this.addToPlaylist(index)} style={styles.menuOption}>
-                    <Icon name="playlist-add" /><Text> Thêm vào playlist</Text>
+                    <Icon name="playlist-add" /><Text> Phát Sau</Text>
                 </MenuOption>
                 </MenuOptions>
             </Menu>
@@ -137,24 +161,50 @@ class ListSongs extends React.Component {
   }
 
   render(){
-    this.state.playlist = this.props.data
+    // this.state.playlist = this.props.data
     
     return (
+    //   <View><TouchableOpacity
+    //   activeOpacity={0.5}
+    //   onPress={() => {
+    //     this.playSong(index);
+
+    //   }}  
+    // >
+      // <Text>Phát Tất cả</Text>
+    // </TouchableOpacity>
+    // </View>
+    
+      <View>{this.state.noData?
+        <TouchableOpacity
+          activeOpacity={0.5}
+          onPress={() => {
+            this.playAllSong();
+
+          }}  
+        >
+          <Text>Phát Tất cả</Text>
+        </TouchableOpacity>:null
+        }
+            
       <FlatList
         data = {this.props.data}
         keyExtractor={(item, index) => index.toString()}
         renderItem={this.renderItem}
         style={styles.flatList}
       />
+      </View>
     )
   }
 }
 const mapStateToProps = state => ({
   user: state.user,
+  player: state.player
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  setUser: bindActionCreators(setUser, dispatch)
+  setUser: bindActionCreators(setUser, dispatch),
+  setSong: bindActionCreators(setSong, dispatch)
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(ListSongs);
